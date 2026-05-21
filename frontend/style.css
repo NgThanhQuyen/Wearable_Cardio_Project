@@ -1,0 +1,851 @@
+/* --- HỆ THỐNG BIẾN SỐ CSS (DESIGN SYSTEM FOR DARK CLINICAL THEME) --- */
+:root {
+    --bg-dark-core: #070b13;
+    --bg-dark-panel: rgba(13, 20, 35, 0.75);
+    --bg-dark-card: rgba(22, 33, 56, 0.5);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    /* Neon Clinical States */
+    --color-normal: #10b981;      /* Xanh ngọc - Ổn định */
+    --color-normal-glow: rgba(16, 185, 129, 0.25);
+    --color-normal-neon: rgba(16, 185, 129, 0.6);
+
+    --color-warning: #f59e0b;     /* Vàng hổ phách - Cảnh báo */
+    --color-warning-glow: rgba(245, 158, 11, 0.35);
+    --color-warning-neon: rgba(245, 158, 11, 0.7);
+
+    --color-alarm: #ef4444;       /* Đỏ neon - Báo động khẩn */
+    --color-alarm-glow: rgba(239, 68, 68, 0.5);
+    --color-alarm-neon: rgba(239, 68, 68, 0.9);
+
+    /* UI Accents */
+    --color-cyan: #06b6d4;
+    --color-blue: #3b82f6;
+    
+    --font-clinical: 'Orbitron', monospace;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- RESET & BASIC STYLES --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body.medical-theme-dark {
+    background-color: var(--bg-dark-core);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hiệu ứng quét Grid y khoa nền */
+.grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(18, 30, 49, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(18, 30, 49, 0.1) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* --- HEADER SECTION --- */
+.main-header {
+    background: linear-gradient(180deg, rgba(9, 15, 29, 0.95) 0%, rgba(7, 11, 19, 0.8) 100%);
+    border-bottom: 1px solid var(--border-color);
+    padding: 18px 30px;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pulse-indicator {
+    width: 12px;
+    height: 12px;
+    background-color: var(--color-normal);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--color-normal);
+    animation: indicator-pulse 2s infinite ease-in-out;
+}
+
+@keyframes indicator-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 15px var(--color-normal); }
+}
+
+.logo-area h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    font-family: var(--font-clinical);
+    color: var(--text-primary);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.logo-area h1 .subtitle {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--color-cyan);
+    letter-spacing: 1px;
+    border-left: 1px solid var(--text-muted);
+    padding-left: 10px;
+    margin-left: 5px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.system-time {
+    font-family: var(--font-clinical);
+    font-size: 0.95rem;
+    color: var(--color-cyan);
+    letter-spacing: 1px;
+    background: rgba(6, 182, 212, 0.08);
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+/* --- MAIN DASHBOARD LAYOUT (GRID) --- */
+.dashboard-grid {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: 320px 1fr 340px;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1600px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    z-index: 5;
+}
+
+/* --- GLASS PANEL COMPONENT --- */
+.panel {
+    background: var(--bg-dark-panel);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: var(--transition-smooth);
+}
+
+.panel-header h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--color-cyan);
+    border-left: 3px solid var(--color-cyan);
+    padding-left: 10px;
+    text-transform: uppercase;
+}
+
+/* --- PATIENT PROFILE PANEL --- */
+.patient-card {
+    background: var(--bg-dark-card);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.patient-avatar {
+    width: 50px;
+    height: 50px;
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-clinical);
+    font-weight: 700;
+    color: var(--color-cyan);
+}
+
+.patient-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.patient-details p strong {
+    color: var(--text-primary);
+}
+
+.patient-id {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+/* --- CONTROL BOX --- */
+.control-box {
+    background: var(--bg-dark-card);
+    border-radius: 10px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.control-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+    border: 1px solid rgba(2, 132, 199, 0.4);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    box-shadow: 0 4px 20px rgba(14, 165, 233, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.control-note {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* --- ALERT STATE CARD --- */
+.alert-card {
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    flex-grow: 1;
+    min-height: 150px;
+    transition: var(--transition-smooth);
+    border: 1px solid var(--border-color);
+    background: rgba(13, 20, 35, 0.9);
+}
+
+.alert-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+}
+
+.alert-card h3 {
+    font-family: var(--font-clinical);
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1;
+    margin: 8px 0;
+    transition: var(--transition-smooth);
+}
+
+.alert-card p {
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: var(--transition-smooth);
+}
+
+/* CSS Giao diện 3 chế độ màu của Bảng điều khiển viền neon */
+.state-normal {
+    border-color: var(--color-normal-neon);
+    box-shadow: 0 0 15px var(--color-normal-glow);
+}
+.state-normal h3 {
+    color: var(--color-normal);
+    text-shadow: 0 0 12px var(--color-normal-glow);
+}
+.state-normal p {
+    color: var(--color-normal);
+}
+
+.state-warning {
+    border-color: var(--color-warning-neon);
+    box-shadow: 0 0 20px var(--color-warning-glow);
+    animation: border-warning-pulse 2s infinite ease-in-out;
+}
+.state-warning h3 {
+    color: var(--color-warning);
+    text-shadow: 0 0 15px var(--color-warning-glow);
+}
+.state-warning p {
+    color: var(--color-warning);
+}
+
+.state-alarm {
+    border-color: var(--color-alarm-neon);
+    box-shadow: 0 0 30px var(--color-alarm-glow);
+    animation: border-alarm-pulse 1.2s infinite ease-in-out;
+}
+.state-alarm h3 {
+    color: var(--color-alarm);
+    text-shadow: 0 0 20px var(--color-alarm-glow);
+}
+.state-alarm p {
+    color: var(--color-alarm);
+}
+
+/* Animations cho các trạng thái cảnh báo viền */
+@keyframes border-warning-pulse {
+    0%, 100% { border-color: rgba(245, 158, 11, 0.5); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+    50% { border-color: var(--color-warning-neon); box-shadow: 0 0 22px var(--color-warning-glow); }
+}
+
+@keyframes border-alarm-pulse {
+    0%, 100% { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 12px rgba(239, 68, 68, 0.2); }
+    50% { border-color: var(--color-alarm-neon); box-shadow: 0 0 32px var(--color-alarm-glow); }
+}
+
+/* --- CENTER PANEL (CHARTS) --- */
+.center-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.charts-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex-grow: 1;
+}
+
+.chart-container {
+    background: var(--bg-dark-card);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-grow: 1;
+    min-height: 220px;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chart-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+}
+
+.chart-title i {
+    font-style: normal;
+    margin-right: 6px;
+}
+
+.icon-hr {
+    color: #ef4444;
+}
+
+.icon-spo2 {
+    color: #3b82f6;
+}
+
+.live-badge {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    font-family: var(--font-clinical);
+    animation: blink-anim 1.5s infinite;
+}
+
+@keyframes blink-anim {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+.canvas-holder {
+    flex-grow: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Thêm shadow dạng Neon phát sáng cho biểu đồ thông qua lớp chứa */
+.chart-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 5%;
+    width: 90%;
+    height: 2px;
+    box-shadow: 0 4px 25px rgba(6, 182, 212, 0.15);
+    pointer-events: none;
+}
+
+/* --- AI CHATBOT PANEL --- */
+.right-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.chatbot-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 14px;
+}
+
+.chatbot-window {
+    flex-grow: 1;
+    background: var(--bg-dark-card);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 480px;
+    min-height: 300px;
+}
+
+/* Cấu trúc scrollbar đẹp */
+.chatbot-window::-webkit-scrollbar {
+    width: 6px;
+}
+.chatbot-window::-webkit-scrollbar-track {
+    background: transparent;
+}
+.chatbot-window::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+.chatbot-window::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.chat-message {
+    padding: 10px 14px;
+    border-radius: 8px;
+    max-width: 90%;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.message-sender {
+    font-family: var(--font-clinical);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+}
+
+.bot {
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+    color: #e2e8f0;
+    align-self: flex-start;
+    border-bottom-left-radius: 1px;
+}
+
+.user {
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    color: #f8fafc;
+    align-self: flex-end;
+    border-bottom-right-radius: 1px;
+}
+
+/* Cảnh báo đỏ AI y tế tinh tế */
+.alert-message {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    animation: border-alarm-pulse 1.5s infinite ease-in-out;
+}
+
+.chat-input-wrapper {
+    display: flex;
+    gap: 8px;
+}
+
+.chat-input {
+    flex-grow: 1;
+    background: rgba(13, 20, 35, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    outline: none;
+    transition: var(--transition-smooth);
+}
+
+.chat-input:focus {
+    border-color: rgba(6, 182, 212, 0.4);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+}
+
+.chat-send-btn {
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    color: var(--color-cyan);
+    width: 44px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+}
+
+.chat-send-btn:hover {
+    background: rgba(6, 182, 212, 0.3);
+    color: white;
+}
+
+/* --- POPUP LỊCH SỬ MODAL --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(3, 7, 18, 0.8);
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    position: relative;
+    background-color: var(--bg-dark-panel);
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    border-radius: 14px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 85vh;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    z-index: 10;
+    animation: modal-open 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes modal-open {
+    from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 14px;
+    flex-shrink: 0;
+}
+
+.modal-header h2 {
+    font-size: 1.1rem;
+    font-family: var(--font-clinical);
+    color: var(--color-cyan);
+    letter-spacing: 1px;
+}
+
+.close-btn {
+    color: var(--text-muted);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.close-btn:hover {
+    color: var(--color-alarm);
+}
+
+.modal-body {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-right: 4px;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.modal-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.85rem;
+}
+
+.history-table th, .history-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.history-table th {
+    background-color: rgba(6, 182, 212, 0.08);
+    color: var(--color-cyan);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.history-table tr:hover td {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.risk-high {
+    color: var(--color-alarm);
+    font-weight: 600;
+}
+
+/* Badges phân loại lịch sử */
+.risk-normal, .risk-warning, .risk-alert {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.risk-normal {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-normal);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.risk-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--color-warning);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.risk-alert {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-alarm);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    animation: blink-anim 1.5s infinite;
+}
+
+/* --- ĐÁP ỨNG THIẾT KẾ RESPONSIVE --- */
+
+/* Màn hình Medium & Zoom 120% */
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: 300px 1fr;
+        gap: 16px;
+        padding: 16px;
+    }
+    .right-panel {
+        grid-column: span 2;
+    }
+    .chatbot-window {
+        max-height: 300px;
+        min-height: 200px;
+    }
+}
+
+/* Tablet (Bình thường / Zoom nhiều) */
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .left-panel, .center-panel, .right-panel {
+        grid-column: span 1;
+    }
+    .alert-card {
+        min-height: 120px;
+        padding: 16px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .main-header {
+        padding: 12px 16px;
+    }
+    .logo-area h1 {
+        font-size: 1.1rem;
+    }
+    .logo-area h1 .subtitle {
+        display: none;
+    }
+    .system-time {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+    }
+    .dashboard-grid {
+        padding: 10px;
+        gap: 12px;
+    }
+    .panel {
+        padding: 14px;
+        gap: 12px;
+    }
+    .alert-card h3 {
+        font-size: 3rem;
+    }
+    .charts-wrapper {
+        gap: 12px;
+    }
+    .chart-container {
+        min-height: 180px;
+        padding: 10px;
+    }
+    .modal-content {
+        width: 95%;
+        margin: 0;
+        padding: 14px;
+    }
+    .history-table th, .history-table td {
+        padding: 8px 10px;
+        font-size: 0.75rem;
+    }
+}
+
+/* --- HỒ SƠ BỆNH NHÂN - PLACEHOLDER CARD --- */
+.placeholder-card {
+    border: 1px dashed rgba(255, 255, 255, 0.12) !important;
+    background: rgba(13, 20, 35, 0.35) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 86px;
+    border-radius: 10px;
+}
+
+.pulse-indicator-idle {
+    width: 8px;
+    height: 8px;
+    background-color: var(--text-muted);
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(148, 163, 184, 0.4);
+    display: inline-block;
+    animation: indicator-pulse-idle 2s infinite ease-in-out;
+}
+
+@keyframes indicator-pulse-idle {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.3); opacity: 0.8; }
+}

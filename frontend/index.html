@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Giám Sát Tim Mạch AI - CardioGuard</title>
+    <!-- Nhúng Google Fonts chuyên dụng cho thiết bị y khoa/kỹ thuật số và văn bản hiện đại -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="medical-theme-dark">
+    <!-- Hiệu ứng quét grid nền y khoa -->
+    <div class="grid-overlay"></div>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <span class="pulse-indicator"></span>
+                <h1>CARDIOGUARD <span class="subtitle">Thiết Bị Đeo Giám Sát Tim Mạch</span></h1>
+            </div>
+            <div class="system-time" id="system-time">23:01:29 | ONLINE</div>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        <!-- Panel 1: Thông tin bệnh nhân & Nút điều khiển kết nối -->
+        <section class="panel glass-panel left-panel" id="panel-patient">
+            <div class="panel-header">
+                <h2>HỒ SƠ BỆNH NHÂN</h2>
+            </div>
+            <!-- Thẻ hiển thị trạng thái chờ hồ sơ bệnh nhân -->
+            <div class="patient-card placeholder-card" id="patient-card-placeholder">
+                <div class="patient-details"
+                    style="text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 6px 0;">
+                    <span class="pulse-indicator-idle"></span>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;">CHỜ
+                        KẾT NỐI THIẾT BỊ ĐỂ TẢI HỒ SƠ</p>
+                </div>
+            </div>
+
+            <!-- Thẻ hồ sơ bệnh nhân thật (Ẩn mặc định) -->
+            <div class="patient-card" id="patient-card" style="display: none;">
+                <div class="patient-avatar">
+                    <span>PT</span>
+                </div>
+                <div class="patient-details">
+                    <p class="patient-id">ID: <strong>PT-2024-089</strong></p>
+                    <p><strong>Tuổi:</strong> 65 | <strong>Giới tính:</strong> Nam</p>
+                    <p><strong>Tiền sử:</strong> Huyết áp cao, Đau thắt ngực</p>
+                </div>
+            </div>
+
+            <div class="control-box">
+                <p class="control-label">TRẠNG THÁI KẾT NỐI WEARABLE</p>
+                <button id="btn-connect" class="btn btn-primary">KẾT NỐI THIẾT BỊ WEARABLE</button>
+                <button id="btn-history" class="btn btn-secondary">Xem Lịch Sử Cảnh Báo</button>
+                <p class="control-note"><small>(*Nhấn nút kết nối để bắt đầu thu thập luồng dữ liệu y tế)</small></p>
+            </div>
+
+            <!-- Panel Cảnh Báo Rủi Ro chính: 3 trạng thái màu (Xanh, Vàng, Đỏ) -->
+            <div id="alert-box" class="alert-card state-normal">
+                <div class="alert-glow"></div>
+                <span class="alert-title">RỦI RO TIM MẠCH</span>
+                <h3 id="risk-score">--</h3>
+                <p id="status-text">Đang ở chế độ chờ...</p>
+            </div>
+        </section>
+
+        <!-- Panel 2: Biểu đồ Real-time -->
+        <section class="panel glass-panel center-panel" id="panel-charts">
+            <div class="panel-header">
+                <h2>BIỂU ĐỒ SINH TỒN THỜI GIAN THỰC</h2>
+            </div>
+            <div class="charts-wrapper">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <span class="chart-title"><i class="icon-hr"></i> HEART RATE (BPM)</span>
+                        <span class="live-badge">LIVE</span>
+                    </div>
+                    <div class="canvas-holder">
+                        <canvas id="hrChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <span class="chart-title"><i class="icon-spo2"></i> SpO2 (%)</span>
+                        <span class="live-badge">LIVE</span>
+                    </div>
+                    <div class="canvas-holder">
+                        <canvas id="spo2Chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Panel 3: AI Chatbot Assistant -->
+        <section class="panel glass-panel right-panel" id="panel-chatbot">
+            <div class="panel-header">
+                <h2>TRỢ LÝ Y TẾ AI</h2>
+            </div>
+            <div class="chatbot-wrapper">
+                <div class="chatbot-window" id="chat-window">
+                    <div class="chat-message bot">
+                        <span class="message-sender">CARDIO-AI</span>
+                        <p>Xin chào. Tôi là trợ lý y tế CARDIO-AI. Hãy hỏi tôi về tình trạng bệnh nhân.</p>
+                    </div>
+                    <div class="chat-message bot alert-message" id="bot-alert" style="display: none;">
+                        <span class="message-sender">CẢNH BÁO KHẨN CẤP</span>
+                        <p>CẢNH BÁO: Nhịp tim tăng vọt và SpO2 giảm đột ngột! Có dấu hiệu suy tim cấp tính. Đề nghị bác
+                            sĩ can thiệp ngay lập tức!</p>
+                    </div>
+                </div>
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Hỏi AI (Nhấn Enter để gửi)...">
+                    <button class="chat-send-btn" id="chat-send-btn">➔</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- POPUP LỊCH SỬ BỆNH ÁN (Ẩn mặc định) -->
+    <div id="history-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>LỊCH SỬ CẢNH BÁO RỦI RO TIM MẠCH</h2>
+                <span class="close-btn" id="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Bệnh nhân</th>
+                                <th>Nhịp tim (Max)</th>
+                                <th>SpO2 (Min)</th>
+                                <th>Mức độ rủi ro</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- JS will populate rows here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

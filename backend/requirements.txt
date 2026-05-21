@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+websockets
+pandas
+numpy<2.0.0
+tensorflow>=2.15,<2.16
+scikit-learn
+requests
+groq
+python-dotenv
