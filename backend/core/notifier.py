@@ -2,25 +2,47 @@ import requests
 import os
 from dotenv import load_dotenv
 
-# Tải biến môi trường từ tệp .env
+# Nạp biến môi trường từ file .env (nếu có)
 load_dotenv()
 
-# Lấy thông tin xác thực Telegram từ biến môi trường
+# Biến cấu hình Telegram (nếu chưa cấu hình, notifier sẽ bỏ qua)
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
+
 def send_telegram_alert(patient_id, hr, spo2, risk, alert_type="alert"):
-    """Gửi thông báo cảnh báo y tế qua Telegram"""
+    """
+    Gửi thông báo tới kênh Telegram chỉ định.
+
+    Nếu `TELEGRAM_TOKEN` hoặc `TELEGRAM_CHAT_ID` chưa được cấu hình, hàm
+    sẽ in cảnh báo và không cố gắng gửi để tránh lỗi runtime.
+
+    - alert_type: 'warning' hoặc 'alert' để điều chỉnh nội dung thông điệp.
+    """
     if not TELEGRAM_TOKEN or TELEGRAM_TOKEN == "your_telegram_bot_token_here":
         print("Telegram: Token chưa được cấu hình, bỏ qua cảnh báo")
         return
-    
-    # Tạo message khác nhau cho từng loại cảnh báo
+
+    # Tùy chỉnh nội dung thông điệp theo mức độ cảnh báo
     if alert_type == "warning":
-        msg = f"⚠️ CẢNH BÁO Y TẾ\n\nBệnh nhân: {patient_id}\nNhịp tim: {hr} BPM\nOxy máu: {spo2}%\nRủi ro tim mạch: {risk}%\n\n⚠️ Mức độ: CẢNH BÁO - Cần theo dõi"
+        msg = (
+            f"⚠️ CẢNH BÁO Y TẾ\n\n"
+            f"Bệnh nhân: {patient_id}\n"
+            f"Nhịp tim: {hr} BPM\n"
+            f"Oxy máu: {spo2}%\n"
+            f"Rủi ro tim mạch: {risk}%\n\n"
+            "⚠️ Mức độ: CẢNH BÁO - Cần theo dõi"
+        )
     else:  # alert_type == "alert"
-        msg = f"🚨 BÁO ĐỘNG Y TẾ\n\nBệnh nhân: {patient_id}\nNhịp tim: {hr} BPM\nOxy máu: {spo2}%\nRủi ro tim mạch: {risk}%\n\n🚨 Mức độ: BÁO ĐỘNG - CẦN CAN THIỆP NGAY!"
-    
+        msg = (
+            f"🚨 BÁO ĐỘNG Y TẾ\n\n"
+            f"Bệnh nhân: {patient_id}\n"
+            f"Nhịp tim: {hr} BPM\n"
+            f"Oxy máu: {spo2}%\n"
+            f"Rủi ro tim mạch: {risk}%\n\n"
+            "🚨 Mức độ: BÁO ĐỘNG - CẦN CAN THIỆP NGAY!"
+        )
+
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": msg}
     try:

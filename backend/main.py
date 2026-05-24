@@ -1,6 +1,14 @@
+"""
+main.py
+
+Entry point cho backend FastAPI của CardioGuard.
+Nếu có thư mục `frontend/`, server sẽ phục vụ `index.html`, `style.css` và `script.js`
+ở route gốc để bạn có thể mở giao diện bằng `http://127.0.0.1:8000/`.
+"""
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, Response
 import asyncio
 import time
 import threading
@@ -10,6 +18,12 @@ from pydantic import BaseModel
 from core import database, notifier, ai_engine, ai_chatbot
 
 app = FastAPI(title="Wearable AI Cardio API")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
+INDEX_FILE = os.path.join(FRONTEND_DIR, "index.html")
+STYLE_FILE = os.path.join(FRONTEND_DIR, "style.css")
+SCRIPT_FILE = os.path.join(FRONTEND_DIR, "script.js")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,8 +38,34 @@ database.init_db()
 ai_engine.load_resources()
 
 
-def print_prediction_metrics(hr, spo2, risk_score, status_msg):
-    """In ra metrics dự đoán ra terminal với định dạng đẹp"""
+@app.get("/")
+def serve_frontend():
+    if os.path.exists(INDEX_FILE):
+        return FileResponse(INDEX_FILE)
+    return {"message": "Frontend not found"}
+
+
+@app.get("/style.css")
+def serve_style():
+    if os.path.exists(STYLE_FILE):
+        return FileResponse(STYLE_FILE, media_type="text/css")
+    return Response(status_code=404)
+
+
+@app.get("/script.js")
+def serve_script():
+    if os.path.exists(SCRIPT_FILE):
+        return FileResponse(SCRIPT_FILE, media_type="application/javascript")
+    return Response(status_code=404)
+
+
+@app.get("/favicon.ico")
+def serve_favicon():
+    return Response(status_code=204)
+
+
+def print_prediction_metrics(hr, spo2, resp, risk_score, status_msg):
+    """In ra metrics dự đoán ra terminal với định dạng đẹp (Đã cập nhật thêm Nhịp thở RESP)"""
     # Xác định giai đoạn
     if risk_score < 30:
         stage = "🟢 NORMAL"
@@ -43,7 +83,7 @@ def print_prediction_metrics(hr, spo2, risk_score, status_msg):
     print(f"\n{color_code}" + "="*70 + reset_code)
     print(f"{color_code} [PREDICTION] {status_msg}{reset_code}")
     print(f"{color_code}─" + "─"*68 + reset_code)
-    print(f"{color_code} Vital Signs:  HR = {hr:.1f} bpm  |  SpO2 = {spo2:.1f}%{reset_code}")
+    print(f"{color_code} Vital Signs:  HR = {hr:.1f} bpm | SpO2 = {spo2:.1f}% | RESP = {resp:.1f}{reset_code}")
     print(f"{color_code} Risk Score:   {risk_score:.1f}%{reset_code}")
     print(f"{color_code} Status:       {stage}{reset_code}")
     print(f"{color_code}" + "="*70 + reset_code)
@@ -80,7 +120,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     data_rcv = await websocket.receive_text()
                     if data_rcv in ("TRIGGER_DANGER", "START_STREAM"):
                         stream_mode = "STREAMING"
-                        print("System: Bắt đầu phát trực tiếp dữ liệu")
+                        print("System: Bắt đầu phát trực tiếp dữ liệu (Đang nạp Buffer 60s...)")
                         buffer = []  # Reset buffer
                     continue
                 except WebSocketDisconnect:
@@ -98,8 +138,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 except asyncio.TimeoutError:
                     pass
                 
-                # Thêm điểm dữ liệu vào sliding window buffer
-                data_point = row[ai_engine.FEATURES].values.tolist()
+                # SỬA Ở ĐÂY: Chỉ nạp 4 Dynamic Features vào buffer
+                data_point = row[ai_engine.DYN_FEATURES].values.tolist()
                 buffer.append(data_point)
                 
                 risk_score = 0
@@ -110,6 +150,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     risk_score = ai_engine.predict_risk(buffer)
                     hr_val = float(round(row['HR'], 1))
                     spo2_val = float(round(row['SpO2'], 1))
+                    resp_val = float(round(row['RESP'], 1)) # Lấy thêm RESP in ra log
                     risk_val = float(risk_score)
                     
                     # Phân loại 3 giai đoạn: bình thường, cảnh báo, báo động
@@ -121,32 +162,33 @@ async def websocket_endpoint(websocket: WebSocket):
                         
                         # Giới hạn cảnh báo 1 lần mỗi 10 giây để tránh spam
                         if current_time - last_alert_time > 10:
-                            # Thực thi cảnh báo cảnh báo trong background thread
+                            # Thực thi cảnh báo trong background thread
                             threading.Thread(target=fire_and_forget_alert, args=(hr_val, spo2_val, risk_val, "warning")).start()
                             last_alert_time = current_time
                     else:
                         status_msg = "BÁO ĐỘNG - ALERT"
                         current_time = time.time()
                         
-                        # Giới hạn cảnh báo 1 lần mỗi 10 giây để tránh spam
+                        # Giới hạn báo động 1 lần mỗi 10 giây để tránh spam
                         if current_time - last_alert_time > 10:
-                            # Thực thi cảnh báo báo động trong background thread
+                            # Thực thi báo động trong background thread
                             threading.Thread(target=fire_and_forget_alert, args=(hr_val, spo2_val, risk_val, "alert")).start()
                             last_alert_time = current_time
                     
-                    # In metrics ra terminal
-                    print_prediction_metrics(hr_val, spo2_val, risk_score, status_msg)
-                    buffer.pop(0)  # Duy trì sliding window
+                    # SỬA Ở ĐÂY: Truyền thêm nhịp thở vào hàm in Terminal
+                    print_prediction_metrics(hr_val, spo2_val, resp_val, risk_score, status_msg)
+                    buffer.pop(0)  # Duy trì sliding window 60s
                 
                 # Gửi dữ liệu đến frontend
                 payload = {
                     "hr": row['HR'],
                     "spo2": row['SpO2'],
+                    "resp": row['RESP'], # Truyền thêm RESP cho Web (nếu cần)
                     "risk_score": risk_score,
                     "status": status_msg
                 }
                 await websocket.send_json(payload)
-                await asyncio.sleep(1)
+                await asyncio.sleep(1) # Trôi 1 giây thực tế
                 
     except WebSocketDisconnect:
         print("WebSocket: Client đã ngắt kết nối")
@@ -166,10 +208,6 @@ def chat_with_ai(request: ChatRequest):
     """Nhận tư vấn y tế từ AI chatbot dựa trên các dấu hiệu sinh tồn"""
     answer = ai_chatbot.get_medical_advice(request.question, request.hr, request.spo2)
     return {"answer": answer}
-
-frontend_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend')
-if os.path.exists(frontend_dir):
-    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn

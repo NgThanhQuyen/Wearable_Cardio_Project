@@ -2,44 +2,43 @@ from groq import Groq
 import os
 from dotenv import load_dotenv
 
-# Tải biến môi trường từ tệp .env
+# Nạp biến môi trường chứa khóa Groq
 load_dotenv()
 
-# Lấy khóa API từ biến môi trường
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY không tìm thấy trong tệp .env")
 
-# Cấu hình Groq client
+# Khởi tạo client Groq để gọi model chat
 client = Groq(api_key=GROQ_API_KEY)
 
+
 def get_medical_advice(question: str, current_hr: float, current_spo2: float) -> str:
-    """Tạo tư vấn y tế từ AI dựa trên các chỉ số sống của bệnh nhân và câu hỏi"""
-    
-    # Tạo prompt nhận thức ngữ cảnh với các dấu hiệu sinh tồn hiện tại
-    prompt = f"""Bạn là một trợ lý y tế ảo chuyên về tim mạch.
-Bệnh nhân hiện có các chỉ số sống:
-- Nhịp tim: {current_hr} BPM
-- SpO2: {current_spo2}%
+    """
+    Gửi prompt đến LLM (Groq) để nhận lời khuyên y tế ngắn gọn.
 
-Trả lời câu hỏi này: "{question}"
+    Hàm xây dựng prompt có ngữ cảnh kèm theo các chỉ số sinh tồn hiện tại,
+    đặt giới hạn về độ dài phản hồi và ghi chú kết thúc để nhắc người đọc
+    rằng đây chỉ là hỗ trợ AI.
+    """
+    prompt = (
+        "Bạn là một trợ lý y tế ảo chuyên về tim mạch.\n"
+        f"Bệnh nhân hiện có các chỉ số sống:\n- Nhịp tim: {current_hr} BPM\n- SpO2: {current_spo2}%\n\n"
+        f"Trả lời câu hỏi: \"{question}\"\n\n"
+        "Yêu cầu: 1) Trả lời ngắn gọn (tối đa 3 câu). 2) Nếu có dấu hiệu nguy hiểm, nêu rõ chỉ số nào. "
+        "3) Kết thúc bằng: 'Đây chỉ là hướng dẫn AI. Cần đánh giá lâm sàng chuyên gia.'"
+    )
 
-Yêu cầu:
-1. Phản hồi ngắn gọn (tối đa 3 câu).
-2. Nêu rõ các chỉ số nguy hiểm nếu có.
-3. Kết thúc: "Đây chỉ là hướng dẫn AI. Cần đánh giá lâm sàng chuyên gia."
-4. KHÔNG gọi người hỏi là "bác sĩ"."""
-    
     print(f"[ChatBot] Gửi request tới Groq API: {question}")
     print(f"[ChatBot] Model: {GROQ_MODEL}")
     print(f"[ChatBot] Vital Signs - HR: {current_hr} BPM, SpO2: {current_spo2}%")
-    
+
     response = client.chat.completions.create(
         model=GROQ_MODEL,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
+        temperature=0.7,
     )
     print(f"[ChatBot] Nhận response thành công từ Groq API")
     return response.choices[0].message.content
