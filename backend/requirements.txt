@@ -3,7 +3,8 @@ uvicorn
 websockets
 pandas
 numpy<2.0.0
-tensorflow>=2.15,<2.16
+tensorflow==2.21.0
+keras==3.14.1
 h5py
 scikit-learn
 requests

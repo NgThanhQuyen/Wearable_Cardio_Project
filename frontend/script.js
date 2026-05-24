@@ -307,6 +307,18 @@ btnHistory.addEventListener('click', async () => {
         if (data.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Không tìm thấy bản ghi cảnh báo nào.</td></tr>';
         } else {
+            // Helper: convert stored timestamp to user's local readable string
+            function formatTimestamp(ts) {
+                if (!ts) return '';
+                // Handle legacy format "YYYY-MM-DD HH:MM:SS" by converting to "T" separator
+                if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(ts)) {
+                    ts = ts.replace(' ', 'T'); // treated as local time
+                }
+                const d = new Date(ts);
+                if (isNaN(d)) return ts; // fallback to raw string
+                return d.toLocaleString('vi-VN', { hour12: false });
+            }
+
             data.forEach(row => {
                 const tr = document.createElement('tr');
                 
@@ -325,7 +337,7 @@ btnHistory.addEventListener('click', async () => {
                 }
                 
                 tr.innerHTML = `
-                    <td style="font-family: var(--font-clinical);">${row.timestamp}</td>
+                    <td style="font-family: var(--font-clinical);">${formatTimestamp(row.timestamp)}</td>
                     <td>${row.patient_id}</td>
                     <td class="risk-high">${row.hr} bpm</td>
                     <td style="color: var(--color-cyan); font-weight: 600;">${row.spo2}%</td>
@@ -354,7 +366,7 @@ window.addEventListener('click', (event) => {
     }
 });
 
-// --- TÍCH HỢP AI CHATBOT (GEMINI) ---
+// --- TÍCH HỢP AI CHATBOT (GROQ) ---
 async function submitChat() {
     const question = chatInput.value.trim();
     if (question === '') return;

@@ -8,11 +8,8 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
-if not GROQ_API_KEY:
-    raise ValueError("GROQ_API_KEY không tìm thấy trong tệp .env")
-
-# Khởi tạo client Groq để gọi model chat
-client = Groq(api_key=GROQ_API_KEY)
+# Khởi tạo client Groq để gọi model chat khi có khóa hợp lệ.
+client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 
 def get_medical_advice(question: str, current_hr: float, current_spo2: float) -> str:
@@ -23,6 +20,12 @@ def get_medical_advice(question: str, current_hr: float, current_spo2: float) ->
     đặt giới hạn về độ dài phản hồi và ghi chú kết thúc để nhắc người đọc
     rằng đây chỉ là hỗ trợ AI.
     """
+    if client is None:
+        return (
+            "Tính năng tư vấn AI hiện chưa được cấu hình vì thiếu GROQ_API_KEY. "
+            "Hãy bổ sung biến môi trường này để bật chatbot."
+        )
+
     prompt = (
         "Bạn là một trợ lý y tế ảo chuyên về tim mạch.\n"
         f"Bệnh nhân hiện có các chỉ số sống:\n- Nhịp tim: {current_hr} BPM\n- SpO2: {current_spo2}%\n\n"

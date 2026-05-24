@@ -1,6 +1,6 @@
 import sqlite3
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Đường dẫn file SQLite dùng để lưu lịch sử cảnh báo
 DB_PATH = 'history.db'
@@ -42,7 +42,8 @@ def save_alert(patient_id, hr, spo2, risk):
     """
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Store timestamps in UTC ISO8601 to avoid timezone ambiguity
+    now = datetime.now(timezone.utc).isoformat()
     cursor.execute('''
         INSERT INTO alerts (timestamp, patient_id, hr, spo2, risk_score)
         VALUES (?, ?, ?, ?, ?)

@@ -1,12 +1,28 @@
 import os
-# Đặt trước tương thích Keras (nếu cần với một số build nhất định)
-os.environ["TF_USE_LEGACY_KERAS"] = "1"
-
 import pickle
 import numpy as np
 import pandas as pd
-from tensorflow.keras.models import load_model
-from tensorflow import keras
+
+try:
+    from tensorflow.keras.models import load_model
+    from tensorflow import keras
+    from tensorflow.keras.layers import InputLayer as KerasInputLayer
+except Exception:
+    from keras.models import load_model
+    import keras
+    from keras.layers import InputLayer as KerasInputLayer
+
+
+class CompatibleInputLayer(KerasInputLayer):
+    def __init__(self, *args, batch_shape=None, batch_input_shape=None, **kwargs):
+        resolved_batch_shape = batch_shape if batch_shape is not None else batch_input_shape
+        if resolved_batch_shape is not None:
+            resolved_batch_shape = tuple(resolved_batch_shape)
+            if len(resolved_batch_shape) >= 1:
+                kwargs.setdefault("batch_size", resolved_batch_shape[0])
+            if len(resolved_batch_shape) > 1:
+                kwargs.setdefault("shape", tuple(resolved_batch_shape[1:]))
+        super().__init__(*args, **kwargs)
 
 # Thư mục gốc của module core (hai cấp so với file này)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -43,7 +59,11 @@ def load_resources():
     try:
         # Load model với compile=False để tránh các khác biệt optimizer/version
         model_path = os.path.join(BASE_DIR, 'models', 'cardio_CNNLSTM_model.h5')
-        model = load_model(model_path, compile=False)
+        model = load_model(
+            model_path,
+            compile=False,
+            custom_objects={"InputLayer": CompatibleInputLayer},
+        )
         print("-> Tải Model thành công!")
     except Exception as e:
         # Không dừng server nếu model thực tế bị thiếu/không tương thích
@@ -74,23 +94,23 @@ def load_resources():
 
 def predict_risk(window_buffer):
     """
-    Dự đoán điểm rủi ro dựa trên cửa sổ dữ liệu động truyền vào.
+        Dự đoán điểm rủi ro dựa trên cửa sổ dữ liệu động truyền vào.
 
-    - `window_buffer` là một list chứa N dòng dữ liệu (mỗi dòng tương ứng 1 giây),
-      mỗi dòng có các giá trị theo thứ tự `DYN_FEATURES`.
-    - Hàm chuẩn hóa dữ liệu bằng `scaler_dyn`/`scaler_stat` rồi đưa vào model.
-    - Trả về điểm rủi ro dạng phần trăm (float, có 1 chữ số thập phân).
+        - `window_buffer` là một list chứa N dòng dữ liệu (mỗi dòng tương ứng 1 giây),
+            mỗi dòng có các giá trị theo thứ tự `DYN_FEATURES`.
+        - Hàm chuẩn hóa dữ liệu bằng `scaler_dyn`/`scaler_stat` rồi đưa vào model.
+        - Trả về điểm rủi ro dạng phần trăm (float, có 1 chữ số thập phân).
     """
-    # Chuyển list -> DataFrame để scaler hoạt động ổn định và tránh một số warning
+        # Chuyển list -> DataFrame để scaler hoạt động ổn định và tránh một số warning
     window_df = pd.DataFrame(window_buffer, columns=DYN_FEATURES)
     window_scaled = scaler_dyn.transform(window_df)
     X_input_dyn = np.expand_dims(window_scaled, axis=0)
 
-    # Chuẩn hóa các feature tĩnh (demo) trước khi đưa vào model
+        # Chuẩn hóa các feature tĩnh (demo) trước khi đưa vào model
     static_df = pd.DataFrame([[PATIENT_AGE, PATIENT_SEX]], columns=STAT_FEATURES)
     X_input_stat = scaler_stat.transform(static_df)
 
-    # Dự đoán
+        # Dự đoán
     pred = model.predict([X_input_dyn, X_input_stat], verbose=0)[0][0]
     risk_score = round(float(pred) * 100, 1)
     return risk_score

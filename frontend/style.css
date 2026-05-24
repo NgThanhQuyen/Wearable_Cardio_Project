@@ -1,4 +1,4 @@
-/* --- HỆ THỐNG BIẾN SỐ CSS (DESIGN SYSTEM FOR DARK CLINICAL THEME) --- */
+/* --- HỆ THỐNG BIẾN SỐ CSS (THIẾT KẾ GIAO DIỆN LÂM SÀNG TỐI) --- */
 :root {
     --bg-dark-core: #070b13;
     --bg-dark-panel: rgba(13, 20, 35, 0.75);
@@ -8,7 +8,7 @@
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
     
-    /* Neon Clinical States */
+    /* Trạng thái lâm sàng kiểu neon */
     --color-normal: #10b981;      /* Xanh ngọc - Ổn định */
     --color-normal-glow: rgba(16, 185, 129, 0.25);
     --color-normal-neon: rgba(16, 185, 129, 0.6);
@@ -21,7 +21,7 @@
     --color-alarm-glow: rgba(239, 68, 68, 0.5);
     --color-alarm-neon: rgba(239, 68, 68, 0.9);
 
-    /* UI Accents */
+    /* Màu nhấn giao diện */
     --color-cyan: #06b6d4;
     --color-blue: #3b82f6;
     
@@ -31,7 +31,7 @@
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- RESET & BASIC STYLES --- */
+/* --- RESET & KIỂU CƠ BẢN --- */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -49,7 +49,7 @@ body.medical-theme-dark {
     flex-direction: column;
 }
 
-/* Hiệu ứng quét Grid y khoa nền */
+/* Hiệu ứng lưới nền y khoa */
 .grid-overlay {
     position: absolute;
     top: 0;
@@ -64,7 +64,7 @@ body.medical-theme-dark {
     z-index: 1;
 }
 
-/* --- HEADER SECTION --- */
+/* --- KHU VỰC HEADER --- */
 .main-header {
     background: linear-gradient(180deg, rgba(9, 15, 29, 0.95) 0%, rgba(7, 11, 19, 0.8) 100%);
     border-bottom: 1px solid var(--border-color);
@@ -135,7 +135,7 @@ body.medical-theme-dark {
     border: 1px solid rgba(6, 182, 212, 0.2);
 }
 
-/* --- MAIN DASHBOARD LAYOUT (GRID) --- */
+/* --- BỐ CỤC DASHBOARD CHÍNH (GRID) --- */
 .dashboard-grid {
     flex-grow: 1;
     display: grid;
@@ -149,7 +149,7 @@ body.medical-theme-dark {
     z-index: 5;
 }
 
-/* --- GLASS PANEL COMPONENT --- */
+/* --- THÀNH PHẦN PANEL KÍNH --- */
 .panel {
     background: var(--bg-dark-panel);
     border-radius: 14px;
@@ -174,7 +174,7 @@ body.medical-theme-dark {
     text-transform: uppercase;
 }
 
-/* --- PATIENT PROFILE PANEL --- */
+/* --- PANEL HỒ SƠ BỆNH NHÂN --- */
 .patient-card {
     background: var(--bg-dark-card);
     border-radius: 10px;
@@ -216,7 +216,7 @@ body.medical-theme-dark {
     color: var(--text-primary);
 }
 
-/* --- CONTROL BOX --- */
+/* --- KHUNG ĐIỀU KHIỂN --- */
 .control-box {
     background: var(--bg-dark-card);
     border-radius: 10px;
@@ -288,7 +288,7 @@ body.medical-theme-dark {
     line-height: 1.3;
 }
 
-/* --- ALERT STATE CARD --- */
+/* --- THẺ TRẠNG THÁI CẢNH BÁO --- */
 .alert-card {
     border-radius: 10px;
     padding: 24px;
@@ -328,7 +328,7 @@ body.medical-theme-dark {
     transition: var(--transition-smooth);
 }
 
-/* CSS Giao diện 3 chế độ màu của Bảng điều khiển viền neon */
+/* Giao diện 3 chế độ màu của bảng điều khiển viền neon */
 .state-normal {
     border-color: var(--color-normal-neon);
     box-shadow: 0 0 15px var(--color-normal-glow);
@@ -367,7 +367,7 @@ body.medical-theme-dark {
     color: var(--color-alarm);
 }
 
-/* Animations cho các trạng thái cảnh báo viền */
+/* Animation cho các trạng thái cảnh báo viền */
 @keyframes border-warning-pulse {
     0%, 100% { border-color: rgba(245, 158, 11, 0.5); box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
     50% { border-color: var(--color-warning-neon); box-shadow: 0 0 22px var(--color-warning-glow); }
@@ -378,7 +378,7 @@ body.medical-theme-dark {
     50% { border-color: var(--color-alarm-neon); box-shadow: 0 0 32px var(--color-alarm-glow); }
 }
 
-/* --- CENTER PANEL (CHARTS) --- */
+/* --- PANEL GIỮA (BIỂU ĐỒ) --- */
 .center-panel {
     display: flex;
     flex-direction: column;
@@ -456,7 +456,7 @@ body.medical-theme-dark {
     height: 100%;
 }
 
-/* Thêm shadow dạng Neon phát sáng cho biểu đồ thông qua lớp chứa */
+/* Thêm shadow neon phát sáng cho biểu đồ thông qua lớp chứa */
 .chart-container::after {
     content: '';
     position: absolute;
@@ -468,7 +468,7 @@ body.medical-theme-dark {
     pointer-events: none;
 }
 
-/* --- AI CHATBOT PANEL --- */
+/* --- PANEL CHATBOT AI --- */
 .right-panel {
     display: flex;
     flex-direction: column;
@@ -495,7 +495,7 @@ body.medical-theme-dark {
     min-height: 300px;
 }
 
-/* Cấu trúc scrollbar đẹp */
+/* Cấu trúc thanh cuộn đẹp */
 .chatbot-window::-webkit-scrollbar {
     width: 6px;
 }
@@ -595,7 +595,7 @@ body.medical-theme-dark {
     color: white;
 }
 
-/* --- POPUP LỊCH SỬ MODAL --- */
+/* --- MODAL LỊCH SỬ --- */
 .modal {
     display: none;
     position: fixed;
@@ -720,7 +720,7 @@ body.medical-theme-dark {
     font-weight: 600;
 }
 
-/* Badges phân loại lịch sử */
+/* Huy hiệu phân loại lịch sử */
 .risk-normal, .risk-warning, .risk-alert {
     padding: 4px 10px;
     border-radius: 6px;
@@ -748,9 +748,9 @@ body.medical-theme-dark {
     animation: blink-anim 1.5s infinite;
 }
 
-/* --- ĐÁP ỨNG THIẾT KẾ RESPONSIVE --- */
+/* --- THIẾT KẾ RESPONSIVE --- */
 
-/* Màn hình Medium & Zoom 120% */
+/* Màn hình trung bình và zoom 120% */
 @media (max-width: 1200px) {
     .dashboard-grid {
         grid-template-columns: 300px 1fr;
