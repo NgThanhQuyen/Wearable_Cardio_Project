@@ -163,7 +163,11 @@ async def websocket_endpoint(websocket: WebSocket):
                         # Giới hạn cảnh báo 1 lần mỗi 10 giây để tránh spam
                         if current_time - last_alert_time > 10:
                             # Thực thi cảnh báo trong background thread
-                            threading.Thread(target=fire_and_forget_alert, args=(hr_val, spo2_val, risk_val, "warning")).start()
+                            warning_thread = threading.Thread(
+                                target=fire_and_forget_alert,
+                                args=(hr_val, spo2_val, risk_val, "warning"),
+                            )
+                            warning_thread.start()
                             last_alert_time = current_time
                     else:
                         status_msg = "BÁO ĐỘNG - ALERT"
@@ -172,24 +176,28 @@ async def websocket_endpoint(websocket: WebSocket):
                         # Giới hạn báo động 1 lần mỗi 10 giây để tránh spam
                         if current_time - last_alert_time > 10:
                             # Thực thi báo động trong background thread
-                            threading.Thread(target=fire_and_forget_alert, args=(hr_val, spo2_val, risk_val, "alert")).start()
+                            alert_thread = threading.Thread(
+                                target=fire_and_forget_alert,
+                                args=(hr_val, spo2_val, risk_val, "alert"),
+                            )
+                            alert_thread.start()
                             last_alert_time = current_time
                     
-                    # SỬA Ở ĐÂY: Truyền thêm nhịp thở vào hàm in Terminal
+                    # Truyền thêm nhịp thở vào hàm in Terminal
                     print_prediction_metrics(hr_val, spo2_val, resp_val, risk_score, status_msg)
                     buffer.pop(0)  # Duy trì sliding window 60s
-                
+
                 # Gửi dữ liệu đến frontend
                 payload = {
                     "hr": row['HR'],
                     "spo2": row['SpO2'],
-                    "resp": row['RESP'], # Truyền thêm RESP cho Web (nếu cần)
+                    "resp": row['RESP'],  # Truyền thêm RESP cho Web (nếu cần)
                     "risk_score": risk_score,
                     "status": status_msg
                 }
                 await websocket.send_json(payload)
-                await asyncio.sleep(1) # Trôi 1 giây thực tế
-                
+                await asyncio.sleep(1)  # Trôi 1 giây thực tế
+
     except WebSocketDisconnect:
         print("WebSocket: Client đã ngắt kết nối")
     except Exception as e:
@@ -208,6 +216,7 @@ def chat_with_ai(request: ChatRequest):
     """Nhận tư vấn y tế từ AI chatbot dựa trên các dấu hiệu sinh tồn"""
     answer = ai_chatbot.get_medical_advice(request.question, request.hr, request.spo2)
     return {"answer": answer}
+
 
 if __name__ == "__main__":
     import uvicorn
