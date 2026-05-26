@@ -10,6 +10,8 @@ jobs:
   test:
     name: Lint, test and smoke
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
     strategy:
       matrix:
         python-version: [3.11]
@@ -42,9 +44,11 @@ jobs:
           flake8 backend --extend-ignore=E501,W293,E261,W292,F541,E305,E116
 
       - name: Run unit tests (if any)
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           pip install pytest
-          pytest -q
+          python -m pytest -q
 
       - name: Smoke test (import backend without MLflow)
         env:
