@@ -1,219 +1,114 @@
-# CardioGuard
+# CardioGuard — Giám sát Tim mạch Thử nghiệm
 
-CardioGuard là một prototype dashboard giám sát tim mạch thời gian thực, được xây dựng bằng FastAPI, WebSocket, TensorFlow/Keras và giao diện web tĩnh.
+CardioGuard là một dự án prototype cho hệ thống giám sát các chỉ số tim mạch thu thập từ wearable hoặc dữ liệu mô phỏng. Mục tiêu của dự án là minh họa một pipeline MLOps đơn giản: thu dữ liệu thời gian thực → chuẩn hoá → dự đoán bằng mô hình Keras → hiển thị dashboard real-time và gửi cảnh báo (Telegram) khi cần.
 
-Dự án mô phỏng luồng dữ liệu từ CSV demo hoặc wearable, đưa qua mô hình AI, rồi hiển thị cảnh báo trực quan trên dashboard và gửi thông báo Telegram khi cần.
+Mục tiêu README này: mô tả ngắn gọn đề tài, hướng dẫn cài đặt và chạy trên máy local hoặc trong Docker, và cung cấp các bước xử lý khi gặp lỗi phổ biến.
 
-## Mục tiêu
+## Tổng quan chức năng
+- Stream dữ liệu demo hoặc stream từ thiết bị.
+- Gom cửa sổ 60s, chuẩn hoá bằng scaler rồi đưa vào mô hình Multi-Input (dynamic + static features).
+- Trả về risk score (0–100%) và hiển thị trên dashboard (Chart.js).
+- Lưu lịch sử cảnh báo vào SQLite (`backend/history.db`).
+- Gửi cảnh báo qua Telegram; hỗ trợ chatbot ngắn qua Groq API.
+- Hỗ trợ tải model & artifacts từ MLflow Registry (DagsHub) hoặc dùng file local.
 
-- Theo dõi nhịp tim, SpO2 và nhịp thở theo thời gian thực.
-- Dự đoán risk score bằng mô hình ML đa đầu vào.
-- Cảnh báo sớm khi các chỉ số vượt ngưỡng.
-- Lưu lịch sử cảnh báo vào SQLite.
-- Hỗ trợ tư vấn y tế ngắn gọn qua Groq.
+## Tệp và vị trí quan trọng
+- Mã backend: [backend/main.py](backend/main.py#L1)
+- Engine AI: [backend/core/ai_engine.py](backend/core/ai_engine.py#L1)
+- Database: [backend/core/database.py](backend/core/database.py#L1)
+- Frontend tĩnh: [frontend/index.html](frontend/index.html#L1), [frontend/script.js](frontend/script.js#L1)
+- Mẫu biến môi trường: [backend/.env.example](backend/.env.example#L1)
+- Dependencies: [backend/requirements.txt](backend/requirements.txt#L1)
+- Docker: [Dockerfile](Dockerfile#L1), [docker-compose.yml](docker-compose.yml#L1)
 
-## Tính năng chính
+## Yêu cầu
+- Python 3.11
+- Docker (nếu chạy container)
+- Quyền truy cập Internet nếu sử dụng Groq/Telegram/MLflow Registry
 
-- Dashboard real-time với Chart.js.
-- WebSocket stream dữ liệu mô phỏng từ CSV.
-- Mô hình Keras/TensorFlow đánh giá cửa sổ 60 giây.
-- Lịch sử cảnh báo lưu trong SQLite.
-- Gửi cảnh báo Telegram khi ở trạng thái warning/alarm.
-- Endpoint chatbot y tế qua Groq.
-- Chạy được trên local hoặc bằng Docker.
+## Thiết lập nhanh (Local)
+1. Clone repository và chuyển tới thư mục project.
 
-## Kiến trúc và pipeline
-
-### Pipeline xử lý dữ liệu
-
-```mermaid
-flowchart LR
-    A[CSV demo hoặc wearable] --> B[WebSocket stream]
-    B --> C[Backend FastAPI]
-    C --> D[Buffer 60 giây]
-    D --> E[Chuẩn hoá bằng scaler]
-    E --> F[Mô hình Keras/TensorFlow]
-    F --> G[Risk score]
-    G --> H{Ngưỡng cảnh báo}
-    H -->|Bình thường| I[Dashboard xanh]
-    H -->|Cảnh báo| J[Dashboard vàng + Telegram]
-    H -->|Báo động| K[Dashboard đỏ + Telegram]
-    G --> L[SQLite history.db]
-    C --> M[/api/chat]
-    M --> N[Groq chatbot]
-```
-
-### Pipeline triển khai đề xuất trên GitHub
-
-```mermaid
-flowchart LR
-    A[Push/PR] --> B[CI: kiểm tra syntax, test, audit]
-    B --> C[Build Docker image]
-    C --> D[Push image lên registry]
-    D --> E[Deploy lên server/VM]
-```
-
-> Repository hiện đã có `Dockerfile` và `docker-compose.yml`, nhưng chưa có workflow GitHub Actions. Sơ đồ trên là pipeline đề xuất nếu bạn muốn bổ sung CI/CD sau khi push lên GitHub.
-
-## Cấu trúc thư mục
-
-```text
-Wearable_Cardio_Project/
-README.md
-Dockerfile
-docker-compose.yml
-.gitignore
-.dockerignore
-backend/
-  main.py
-  requirements.txt
-  .env.example
-  core/
-    __init__.py
-    ai_chatbot.py
-    ai_engine.py
-    database.py
-    notifier.py
-  data/
-    patient_demo_stream.csv
-  models/
-    cardio_CNNLSTM_model.h5
-frontend/
-  index.html
-  script.js
-  style.css
-```
-
-## Công nghệ sử dụng
-
-- Backend: FastAPI, Uvicorn, WebSocket
-- AI/ML: TensorFlow, Keras, scikit-learn, NumPy, pandas
-- Lưu trữ: SQLite
-- Frontend: HTML, CSS, JavaScript, Chart.js
-- Tích hợp ngoài: Groq API, Telegram Bot API
-- Đóng gói: Docker, Docker Compose
-
-## Yêu cầu hệ thống
-
-- Python 3.11+ khi chạy local.
-- Docker Desktop nếu chạy bằng container.
-- Internet nếu sử dụng Groq API hoặc Telegram.
-
-## Thiết lập biến môi trường
-
-Tạo file `backend/.env` từ mẫu `backend/.env.example`:
-
-```ini
-GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
-TELEGRAM_TOKEN=your_telegram_bot_token_here
-TELEGRAM_CHAT_ID=your_chat_id_here
-PATIENT_ID=PT-2024-089
-```
-
-## Chạy local
-
-### 1. Tạo virtual environment
+2. Tạo virtual environment và cài dependency:
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\activate
-```
-
-### 2. Cài dependencies
-
-```powershell
+.venv\Scripts\Activate.ps1
 pip install -r backend/requirements.txt
 ```
 
-### 3. Chạy ứng dụng
+3. Tạo file môi trường từ mẫu và chỉnh thông số cần thiết:
+
+```powershell
+copy backend\.env.example backend\.env
+```
+
+4. Chạy server:
 
 ```powershell
 cd backend
 python main.py
+# hoặc
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-Hoặc:
-
-```powershell
-uvicorn main:app --host 127.0.0.1 --port 8000
-```
-
-Mở trình duyệt tại:
-
-```text
-http://127.0.0.1:8000
-```
+Mở `http://127.0.0.1:8000` để truy cập dashboard.
 
 ## Chạy bằng Docker
-
-### Cách 1: docker run
+- Build image và chạy (CLI):
 
 ```powershell
+cd <project-root>
 docker build -t cardioguard .
 docker run --rm -p 8000:8000 --env-file backend/.env cardioguard
 ```
 
-### Cách 2: Docker Compose
+- Hoặc dùng Docker Compose (khuyến nghị cho dev):
 
 ```powershell
+cd <project-root>
 docker compose up --build
 ```
 
-Mở trình duyệt tại:
+Lưu ý: `docker-compose.yml` đã cấu hình để đọc `backend/.env` (env_file). Nếu muốn chỉ định trực tiếp, bạn vẫn có thể dùng `docker compose --env-file backend/.env up --build`.
 
-```text
-http://127.0.0.1:8000
+## MLflow (Registry / Artifacts)
+- Nếu bạn muốn backend tự tải model từ MLflow Registry (ví dụ: DagsHub), cấu hình các biến trong `backend/.env`:
+
+- `USE_MLFLOW=true`
+- `MLFLOW_TRACKING_URI` (ví dụ DagsHub tracking URI)
+- `MLFLOW_MODEL_URI` (ví dụ `models:/Wearable_Cardio_Predictor/latest`)
+- `MLFLOW_TRACKING_USERNAME`, `MLFLOW_TRACKING_PASSWORD` (nếu cần)
+- `MLFLOW_RUN_ID` (tùy chọn — dùng để tải artifacts cụ thể như scaler)
+
+Hệ thống ưu tiên:
+1) tải model trực tiếp từ Registry nếu `MLFLOW_MODEL_URI` được cung cấp; 2) fallback tải artifacts từ `MLFLOW_RUN_ID`; 3) nếu không có, dùng file local `backend/models/`.
+
+## Biến môi trường (tóm tắt)
+- `USE_MLFLOW` — bật/tắt tải model từ MLflow
+- `MLFLOW_TRACKING_URI`, `MLFLOW_TRACKING_USERNAME`, `MLFLOW_TRACKING_PASSWORD`
+- `MLFLOW_MODEL_URI`, `MLFLOW_RUN_ID`
+- `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID` — tích hợp Telegram
+- `GROQ_API_KEY`, `GROQ_MODEL` — tích hợp chatbot
+
+Xem `backend/.env.example` để biết đầy đủ biến và giá trị mẫu.
+
+## Kiểm tra nhanh (smoke tests)
+- Trong venv cài sẵn dependencies:
+
+```powershell
+cd backend
+.venv\Scripts\python -c "from core import ai_engine; ai_engine.load_resources(); print('AI engine ready')"
 ```
 
-## API chính
+Nếu lệnh trên in `AI engine ready` hoặc tương tự mà không lỗi, model/scaler đã nạp thành công.
 
-- `GET /` - Trang dashboard
-- `GET /style.css` - CSS tĩnh
-- `GET /script.js` - JavaScript tĩnh
-- `GET /api/history` - Lịch sử cảnh báo gần nhất
-- `POST /api/chat` - Gửi câu hỏi tới chatbot
-- `ws://<host>/ws` - WebSocket stream dữ liệu real-time
+## Vấn đề thường gặp & cách khắc phục
+- Lỗi không tìm thấy model/scaler trong Docker: đảm bảo Compose đọc `backend/.env` hoặc truyền biến MLflow khi chạy. Hoặc đặt file `cardio_CNNLSTM_model.h5`, `scaler_dyn.pkl`, `scaler_stat.pkl` vào `backend/models/` trước khi build image nếu muốn dùng local files.
+- Cảnh báo Keras/TensorFlow lúc load model (optimizer/variable mismatch): thường là warning và không chặn; để an toàn nên xuất model/scaler cùng phiên bản thư viện.
+- MLflow auth fail: kiểm tra `MLFLOW_TRACKING_USERNAME`/`MLFLOW_TRACKING_PASSWORD` và `MLFLOW_TRACKING_URI`.
 
-## Luồng hoạt động
+## Lưu ý quan trọng
+- Ứng dụng này là minh hoạ kỹ thuật, không phải công cụ chẩn đoán y khoa. Mọi quyết định lâm sàng phải do chuyên gia y tế có thẩm quyền thực hiện.
 
-1. Client mở dashboard và kết nối WebSocket.
-2. Backend phát dữ liệu demo từ file CSV.
-3. Dữ liệu được gom vào buffer 60 giây.
-4. Buffer được chuẩn hoá bằng scaler trước khi đưa vào model.
-5. Mô hình trả về risk score.
-6. Backend phân loại bình thường, cảnh báo hoặc báo động và gửi dữ liệu về frontend.
-7. Nếu cần, hệ thống lưu lịch sử và gửi cảnh báo Telegram.
-
-## Kiểm tra bảo mật trước khi push lên GitHub
-
-Các điểm đã được xác nhận:
-
-- File `.env` đã bị loại trừ trong `.gitignore`.
-- `history.db`, virtual environment, log và các file runtime đều bị ignore.
-- `backend/.env.example` chỉ chứa giá trị mẫu, không có secret thật.
-- Không thấy API key hoặc token hardcode trong source.
-- Docker chạy đúng với port mapping tới `127.0.0.1:8000` trên máy host.
-
-Lưu ý:
-
-- Khi load scaler, có thể xuất hiện cảnh báo `InconsistentVersionWarning` nếu scaler được tạo bằng phiên bản scikit-learn khác. Cảnh báo này không làm dừng ứng dụng, nhưng nên tái tạo scaler bằng cùng phiên bản để kết quả ổn định hơn.
-- Môi trường hiện tại chưa chạy được full `pip-audit`, vì vậy nên thêm bước audit dependency vào CI trước khi dùng cho production.
-
-## Xử lý lỗi thường gặp
-
-- Nếu `http://127.0.0.1:8000` không mở được, hãy kiểm tra container còn đang chạy không.
-- Nếu chạy Docker, hãy chắc chắn đã map port `8000:8000`.
-- Nếu chatbot không phản hồi, kiểm tra `GROQ_API_KEY` trong `backend/.env`.
-- Nếu Telegram không gửi cảnh báo, kiểm tra `TELEGRAM_TOKEN` và `TELEGRAM_CHAT_ID`.
-- Nếu thấy `0.0.0.0:8000` trong log, đó là địa chỉ bind nội bộ của Uvicorn; trên trình duyệt vẫn phải dùng `http://127.0.0.1:8000` hoặc `http://localhost:8000`.
-
-## Hướng phát triển tiếp
-
-- Thêm GitHub Actions để kiểm tra syntax, chạy test, build Docker image và audit dependency.
-- Tạo lại scaler bằng đúng phiên bản scikit-learn để bỏ cảnh báo version mismatch.
-- Nếu cần production hơn, có thể tách frontend thành static hosting riêng.
-
-## Tuyên bố
-
-Đây là ứng dụng minh hoạ kỹ thuật, không phải công cụ chẩn đoán y khoa. Mọi quyết định lâm sàng phải do chuyên gia y tế có thẩm quyền thực hiện.
+---

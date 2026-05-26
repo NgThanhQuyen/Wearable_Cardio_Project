@@ -3,7 +3,8 @@ import os
 from dotenv import load_dotenv
 
 # Nạp biến môi trường từ file .env (nếu có)
-load_dotenv()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Biến cấu hình Telegram (nếu chưa cấu hình, notifier sẽ bỏ qua)
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
